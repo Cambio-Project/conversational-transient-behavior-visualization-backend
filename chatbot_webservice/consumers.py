@@ -15,6 +15,17 @@ class TestConsumer(WebsocketConsumer):
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)('vis-interaction', self.channel_name)
 
-    def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        logger.info('Received data: {}'.format(text_data_json))
+    def receive(self, text_data=None):
+        data = json.loads(text_data)
+        content = data['content']
+        async_to_sync(self.channel_layer.group_send)('vis-interaction', {
+            'type': 'interaction',
+            'content': content
+        })
+
+    def interaction(self, event):
+        content = event['content']
+        logger.info('Content: {}'.format(content))
+        self.send(text_data=json.dumps({
+            'content': content
+        }))

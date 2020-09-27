@@ -19,7 +19,7 @@ def dialogflow(request):
     layer = get_channel_layer()
     async_to_sync(layer.group_send)('vis-interaction', {
         'type': 'interaction',
-        'content': 'show_architecture'
+        'content': intent
     })
 
     if intent == 'Show Architecture':
