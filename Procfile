@@ -1,2 +1,1 @@
-web: gunicorn webservice.wsgi
-web2: daphne webservice.asgi:application
+web: python manage.py runserver
