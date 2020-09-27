@@ -1,6 +1,7 @@
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 import json
 import logging
@@ -13,6 +14,13 @@ def dialogflow(request):
     logger.info('Dialogflow endpoint received a request')
     req = json.loads(request.body)
     intent = req.get('queryResult').get('intent').get('displayName')
+
+    # Send message via websockets
+    layer = get_channel_layer()
+    async_to_sync(layer.group_send)('vis-interaction', {
+        'type': 'interaction',
+        'content': 'show_architecture'
+    })
 
     if intent == 'Show Architecture':
         fulfillmentText = {'fulfillmentText': 'Here is your architecture.'}
