@@ -35,6 +35,7 @@ def dialogflow(request):
     return JsonResponse(fulfillmentText, safe=False)
 
 
+@csrf_exempt
 def services(request):
     logger.info('Services endpoint received a request')
 
