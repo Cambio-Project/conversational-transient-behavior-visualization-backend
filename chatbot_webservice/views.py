@@ -33,3 +33,12 @@ def dialogflow(request):
         fulfillmentText = {'fulfillmentText': 'I am selecting {}'.format(param)}
 
     return JsonResponse(fulfillmentText, safe=False)
+
+
+def services(request):
+    logger.info('Services endpoint received a request')
+
+    if request.POST:
+        logger.info('Body: {}'.format(request.body))
+
+    return HttpResponse('Thank you, I got your service')

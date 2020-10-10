@@ -17,6 +17,6 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path('dialogflow/', include('chatbot_webservice.urls')),
+    path('', include('chatbot_webservice.urls')),
     path('admin/', admin.site.urls),
 ]
