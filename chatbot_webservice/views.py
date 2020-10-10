@@ -1,10 +1,14 @@
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from rest_framework import viewsets
 
 import json
 import logging
+
+from .serializers import ServiceSerializer, DependencySerializer
+from .models import Service, Dependency
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +39,11 @@ def dialogflow(request):
     return JsonResponse(fulfillmentText, safe=False)
 
 
-@csrf_exempt
-def services(request):
-    logger.info('Services endpoint received a request')
+class ServiceViewSet(viewsets.ModelViewSet):
+    queryset = Service.objects.all().order_by('id')
+    serializer_class = ServiceSerializer
 
-    if request.POST:
-        logger.info('Body: {}'.format(request.body))
 
-    return HttpResponse('Thank you, I got your service')
+class DependencyViewSet(viewsets.ModelViewSet):
+    queryset = Dependency.objects.all()
+    serializer_class = DependencySerializer
