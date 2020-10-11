@@ -9,6 +9,7 @@ import logging
 
 from .serializers import ServiceSerializer, DependencySerializer, ServiceDataSerializer, SpecificationSerializer
 from .models import Service, Dependency, ServiceData, Specification
+from .utils import Utils
 
 logger = logging.getLogger(__name__)
 
@@ -19,14 +20,14 @@ def dialogflow(request):
     req = json.loads(request.body)
 
     intent = req.get('queryResult').get('intent').get('displayName')
-    param = req.get('queryResult').get('parameters').get('service_name')
+    params = req.get('queryResult').get('parameters')
 
     # Send message via websockets
     layer = get_channel_layer()
     async_to_sync(layer.group_send)('vis-interaction', {
         'type': 'interaction',
         'intent': intent,
-        'param': param
+        'params': params
     })
 
     if intent == 'Show Architecture':
@@ -34,7 +35,18 @@ def dialogflow(request):
     elif intent == 'Show Specification':
         fulfillmentText = {'fulfillmentText': 'Here is you specification.'}
     elif intent == 'Select Service':
-        fulfillmentText = {'fulfillmentText': 'I am selecting {}'.format(param)}
+        fulfillmentText = {'fulfillmentText': 'I am selecting {}'.format(params.get('service_name'))}
+    elif intent == 'Specification':
+        fulfillmentText = {'fulfillmentText' : 'I specified the following transient behavior for {} in case of {}: initial loss: {}, recovery time: {}s, loss of resilience: {}'}
+
+        service = Service.objects.get(name=params.get('service-name'))
+        Specification.objects.create(
+            service=service,
+            cause=params.get('cause'),
+            max_initial_loss=params.get('initial_loss'),
+            max_recovery_time=Utils.duration_to_seconds(params.get('recovery_time')),
+            max_lor=params.get('loss_of_resilience')
+        )
 
     return JsonResponse(fulfillmentText, safe=False)
 
