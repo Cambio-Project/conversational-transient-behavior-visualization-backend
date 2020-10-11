@@ -7,8 +7,8 @@ from rest_framework import viewsets
 import json
 import logging
 
-from .serializers import ServiceSerializer, DependencySerializer, ServiceDataSerializer
-from .models import Service, Dependency, ServiceData
+from .serializers import ServiceSerializer, DependencySerializer, ServiceDataSerializer, SpecificationSerializer
+from .models import Service, Dependency, ServiceData, Specification
 
 logger = logging.getLogger(__name__)
 
@@ -62,4 +62,19 @@ class ServiceDataViewSet(viewsets.ModelViewSet):
         if callId:
             queryset = queryset.filter(callId=callId)
 
+        return queryset
+
+
+class SpecificationViewSet(viewsets.ModelViewSet):
+    serializer_class = SpecificationSerializer
+
+    def get_queryset(self):
+        queryset = Specification.objects.all().order_by('service')
+        service = self.request.query_params.get('service')
+        cause = self.request.query_params.get('cause')
+
+        if service:
+            queryset = queryset.filter(service_id=service)
+        if cause:
+            queryset = queryset.filter(cause=cause)
         return queryset

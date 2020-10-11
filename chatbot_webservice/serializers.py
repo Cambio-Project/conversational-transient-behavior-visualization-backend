@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Service, Dependency, ServiceData
+from .models import Service, Dependency, ServiceData, Specification
 
 
 class ServiceSerializer(serializers.HyperlinkedModelSerializer):
@@ -25,3 +25,11 @@ class ServiceDataSerializer(serializers.HyperlinkedModelSerializer):
         model = ServiceData
         fields = ('service', 'time', 'callId', 'uri', 'successfulTransactions', 'failedTransactions', 'droppedTransactions',
                   'qos')
+
+
+class SpecificationSerializer(serializers.HyperlinkedModelSerializer):
+    service = serializers.PrimaryKeyRelatedField(queryset=Service.objects.all())
+
+    class Meta:
+        model = Specification
+        fields = ('service', 'cause', 'max_initial_loss', 'max_recovery_time', 'max_lor')

@@ -7,6 +7,7 @@ router = routers.DefaultRouter()
 router.register(r'services', views.ServiceViewSet)
 router.register(r'dependencies', views.DependencyViewSet)
 router.register(r'servicedata', views.ServiceDataViewSet, basename='servicedata')
+router.register(r'specifications', views.SpecificationViewSet, basename='specification')
 
 urlpatterns = [
     path('dialogflow/', views.dialogflow, name='dialogflow'),

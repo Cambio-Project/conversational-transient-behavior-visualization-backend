@@ -25,3 +25,11 @@ class ServiceData(models.Model):
     failedTransactions = models.IntegerField(null=False)
     droppedTransactions = models.IntegerField(null=False)
     qos = models.IntegerField(null=False)
+
+
+class Specification(models.Model):
+    service = models.ForeignKey(Service, related_name='specification', on_delete=models.CASCADE)
+    cause = models.CharField(max_length=200, null=False, blank=False)
+    max_initial_loss = models.IntegerField(null=False)
+    max_recovery_time = models.IntegerField(null=False)
+    max_lor = models.IntegerField(null=False)
