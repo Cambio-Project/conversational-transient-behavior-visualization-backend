@@ -13,4 +13,4 @@ class Utils:
             'decade': -1
         }
 
-        return duration.get('amount') * mult[duration.get('unit')]
+        return duration['amount'] * mult[duration['unit']]
