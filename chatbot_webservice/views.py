@@ -39,6 +39,8 @@ def dialogflow(request):
     elif intent == 'Specification':
         fulfillmentText = {'fulfillmentText' : 'I specified the following transient behavior for {} in case of {}: initial loss: {}, recovery time: {}s, loss of resilience: {}'}
 
+        logger.info('service-name: {}'.format(params.get('service-name')))
+
         service = Service.objects.get(name=params.get('service-name'))
         Specification.objects.create(
             service=service,
