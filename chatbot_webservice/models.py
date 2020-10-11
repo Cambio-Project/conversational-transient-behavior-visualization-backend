@@ -1,7 +1,6 @@
 from django.db import models
 
 
-# Create your models here.
 class Service(models.Model):
     name = models.CharField(max_length=200, null=False, blank=False)
 
@@ -15,3 +14,13 @@ class Dependency(models.Model):
 
     def __str__(self):
         return self.source.name + " -> " + self.target.name
+
+
+class ServiceData(models.Model):
+    service = models.ForeignKey(Service, related_name='service', on_delete=models.CASCADE)
+    time = models.DecimalField(null=False, decimal_places=4, max_digits=10)
+    callId = models.IntegerField(null=False)
+    successfulTransactions = models.IntegerField(null=False)
+    failedTransactions = models.IntegerField(null=False)
+    droppedTransactions = models.IntegerField(null=False)
+    avgResponseTime = models.DecimalField(null=False, decimal_places=4, max_digits=10)
