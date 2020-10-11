@@ -20,6 +20,7 @@ def dialogflow(request):
     req = json.loads(request.body)
 
     intent = req.get('queryResult').get('intent').get('displayName')
+    service_name = req.get('queryResult').get('parameters').get('service_name')
     params = req.get('queryResult').get('parameters')
 
     # Send message via websockets
@@ -39,9 +40,9 @@ def dialogflow(request):
     elif intent == 'Specification':
         fulfillmentText = {'fulfillmentText' : 'I specified the following transient behavior for {} in case of {}: initial loss: {}, recovery time: {}s, loss of resilience: {}'}
 
-        logger.info('service-name: {}'.format(params.get('service-name')))
+        logger.info('service-name: {}'.format(service_name))
 
-        service = Service.objects.get(name=params.get('service-name'))
+        service = Service.objects.get(name=service_name)
         Specification.objects.create(
             service=service,
             cause=params.get('cause'),
