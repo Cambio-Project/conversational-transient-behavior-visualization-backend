@@ -18,19 +18,19 @@ class TestConsumer(WebsocketConsumer):
     def receive(self, text_data=None):
         data = json.loads(text_data)
         intent = data['intent']
-        param = data['param']
+        params = data['params']
         async_to_sync(self.channel_layer.group_send)('vis-interaction', {
             'type': 'interaction',
             'intent': intent,
-            'param': param
+            'params': params
         })
 
     def interaction(self, event):
         intent = event['intent']
-        param = event['param']
+        params = event['params']
 
         logger.info('Intent: {}'.format(intent))
         self.send(text_data=json.dumps({
             'intent': intent,
-            'param': param
+            'params': params
         }))
