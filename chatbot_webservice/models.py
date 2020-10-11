@@ -24,4 +24,4 @@ class ServiceData(models.Model):
     successfulTransactions = models.IntegerField(null=False)
     failedTransactions = models.IntegerField(null=False)
     droppedTransactions = models.IntegerField(null=False)
-    avgResponseTime = models.DecimalField(null=False, decimal_places=4, max_digits=10)
+    qos = models.IntegerField(null=False)
