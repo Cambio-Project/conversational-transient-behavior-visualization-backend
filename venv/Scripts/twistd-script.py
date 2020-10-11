@@ -1,4 +1,4 @@
-#!c:\users\sammy\projects\uni\master-thesis\webservice\venv\scripts\python.exe
+#!C:\Users\Sammy\projects\uni\master-thesis\webservice\venv\Scripts\python.exe
 # EASY-INSTALL-ENTRY-SCRIPT: 'Twisted==20.3.0','console_scripts','twistd'
 import re
 import sys

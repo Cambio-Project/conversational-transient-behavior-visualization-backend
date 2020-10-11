@@ -23,5 +23,5 @@ class ServiceDataSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = ServiceData
-        fields = ('service', 'time', 'callId', 'successfulTransactions', 'failedTransactions', 'droppedTransactions',
+        fields = ('service', 'time', 'callId', 'uri', 'successfulTransactions', 'failedTransactions', 'droppedTransactions',
                   'avgResponseTime')

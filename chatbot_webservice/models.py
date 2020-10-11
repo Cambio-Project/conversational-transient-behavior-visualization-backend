@@ -20,6 +20,7 @@ class ServiceData(models.Model):
     service = models.ForeignKey(Service, related_name='service', on_delete=models.CASCADE)
     time = models.DecimalField(null=False, decimal_places=4, max_digits=10)
     callId = models.IntegerField(null=False)
+    uri = models.CharField(max_length=300, null=False)
     successfulTransactions = models.IntegerField(null=False)
     failedTransactions = models.IntegerField(null=False)
     droppedTransactions = models.IntegerField(null=False)
