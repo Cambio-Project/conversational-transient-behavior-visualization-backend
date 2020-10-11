@@ -55,8 +55,11 @@ class ServiceDataViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = ServiceData.objects.all().order_by('time')
         service = self.request.query_params.get('service')
+        callId = self.request.query_params.get('callid')
 
         if service:
             queryset = queryset.filter(service_id=service)
+        if callId:
+            queryset = queryset.filter(callId=callId)
 
         return queryset
