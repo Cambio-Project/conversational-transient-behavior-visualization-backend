@@ -1,12 +1,63 @@
 import csv
+import numpy as np
 
-from chatbot_webservice.models import Service, Dependency, ServiceData
+from chatbot_webservice.models import Service, ServiceData
 
 file_path = 'results_monkey_nopattern.csv'
-
-specifiedResponseTime = 5
-
+percentile = 80
 counter = 0
+
+
+def compute_percentile(service, call_id, k):
+    values = []
+
+    with open(file_path, newline='') as csv_file:
+        reader = csv.reader(csv_file, delimiter=',')
+        next(reader, None)
+
+        for row in reader:
+            service_name = row[2]
+            service_call_id = row[1]
+
+            if service_name == service and service_call_id == call_id:
+                response_time = row[8]
+                values.append(float(response_time))
+
+    array = np.array(values)
+    return np.percentile(array, k)
+
+
+def assign_percentile(qos, service, call_id):
+    qos[service][call_id] = compute_percentile(service, call_id, percentile)
+
+
+def create_expected_qos_map():
+
+    qos = {
+        'loon-service': {
+            '0': -1.0,
+            '1': -1.0,
+            '2': -1.0,
+            '3': -1.0,
+            '4': -1.0
+        },
+        'loon-service2': {
+            '5': -1.0
+        }
+    }
+
+    assign_percentile(qos, 'loon-service', '0')
+    assign_percentile(qos, 'loon-service', '1')
+    assign_percentile(qos, 'loon-service', '2')
+    assign_percentile(qos, 'loon-service', '3')
+    assign_percentile(qos, 'loon-service', '4')
+    assign_percentile(qos, 'loon-service2', '5')
+
+    return qos
+
+
+specifiedResponseTimes = create_expected_qos_map()
+print(f'Specified response times: {specifiedResponseTimes}')
 
 with open(file_path, newline='') as csv_file:
     data_reader = csv.reader(csv_file, delimiter=',')
@@ -15,19 +66,23 @@ with open(file_path, newline='') as csv_file:
         counter += 1
 
         service_name = row[2]
+        call_id = row[1]
         service = Service.objects.get(name=service_name)
 
         avgResponseTime = row[8]
+        expectedResponseTime = specifiedResponseTimes[service_name][call_id]
 
         if float(avgResponseTime) == 0.0:
             qos = 100
         else:
-            qos = round((float(specifiedResponseTime) / float(avgResponseTime)) * 100)
+            qos = round((float(expectedResponseTime) / float(avgResponseTime)) * 100)
+            if qos > 100:
+                qos = 100
 
         ServiceData.objects.create(
             service=service,
             time=row[0],
-            callId=row[1],
+            callId=call_id,
             uri=row[4],
             successfulTransactions=row[5],
             failedTransactions=row[6],
@@ -35,4 +90,6 @@ with open(file_path, newline='') as csv_file:
             qos=qos
         )
 
-        print(counter,  end='\r')
+        if counter % 50 == 0:
+            print(counter,  end='\r')
+

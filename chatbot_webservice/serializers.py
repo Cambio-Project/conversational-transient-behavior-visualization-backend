@@ -6,7 +6,7 @@ from .models import Service, Dependency, ServiceData, Specification
 class ServiceSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Service
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'endpoints')
 
 
 class DependencySerializer(serializers.HyperlinkedModelSerializer):
