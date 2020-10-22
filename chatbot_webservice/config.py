@@ -1,13 +1,12 @@
-from enum import Enum
 
 
-class Intent(Enum):
+class Intent:
     SELECT_SERVICE = 'Select Service'
     SHOW_SPECIFICATION = 'Show Specification'
     SPECIFICATION = 'Specification'
 
 
-class Param(Enum):
+class Param:
     SERVICE_NAME = 'service_name'
     TB_CAUSE = 'tb_cause'
     INITIAL_LOSS = 'initial_loss'
@@ -17,7 +16,7 @@ class Param(Enum):
     LOSS_OFF_RESILIENCE = 'loss_of_resilience'
 
 
-class ReqParam(Enum):
+class ReqParam:
     QUERY_RESULT = 'queryResult'
     INTENT = 'intent'
     DISPLAY_NAME = 'displayName'
