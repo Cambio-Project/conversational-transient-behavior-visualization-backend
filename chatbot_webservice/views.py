@@ -74,7 +74,7 @@ def dialogflow(request):
         specification = Specification.objects.get(service__name=params[Param.SERVICE_NAME], cause=params[Param.TB_CAUSE])
         if specification:
             logger.info('Found specification object')
-            specification.max_initial_loss
+            specification.max_initial_loss = params[Param.INITIAL_LOSS]
             specification.save()
             fulfillmentText = {'fulfillmentText': f'Updated the initial loss for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]} to {params[Param.INITIAL_LOSS]}'}
         else:
