@@ -76,6 +76,7 @@ def dialogflow(request):
         if specification:
             logger.info('Found specification object')
             specification.max_initial_loss = params[Param.INITIAL_LOSS]
+            specification.save()
             fulfillmentText = {'fulfillmentText': f'Updated the initial loss for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]} to {params[Param.INITIAL_LOSS]}'}
         else:
             logger.info('Did not find specification object')
@@ -93,6 +94,7 @@ def dialogflow(request):
                                                   cause=params[Param.TB_CAUSE])
         if specification:
             specification.max_recovery_time = Utils.duration_to_seconds(params[Param.RECOVERY_TIME])
+            specification.save()
             fulfillmentText = {
                 'fulfillmentText': f'Updated the recovery time for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]} to {Utils.duration_to_seconds(params[Param.RECOVERY_TIME])} s'}
         else:
