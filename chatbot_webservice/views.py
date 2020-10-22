@@ -10,6 +10,7 @@ import logging
 from .serializers import ServiceSerializer, DependencySerializer, ServiceDataSerializer, SpecificationSerializer
 from .models import Service, Dependency, ServiceData, Specification
 from .utils import Utils
+from .config import Intent, Param, ReqParam
 
 logger = logging.getLogger(__name__)
 
@@ -18,23 +19,42 @@ logger = logging.getLogger(__name__)
 def dialogflow(request):
     logger.info('Dialogflow endpoint received a request')
     req = json.loads(request.body)
-
-    intent = req.get('queryResult').get('intent').get('displayName')
+    query_result = req.get(ReqParam.QUERY_RESULT)
+    intent = query_result.get(ReqParam.INTENT).get(ReqParam.DISPLAY_NAME)
+    query_params = query_result.get(ReqParam.PARAMETERS)
 
     params = {}
 
-    if intent == 'Select Service':
-        params['service_name'] = req.get('queryResult').get('parameters').get('service_name')
-    if intent == 'Specification':
-        params['service_name'] = req.get('queryResult').get('parameters').get('service_name')
-        params['tb_cause'] = req.get('queryResult').get('parameters').get('tb_cause')
-        params['initial_loss'] = req.get('queryResult').get('parameters').get('initial_loss')
-        params['recovery_time'] = {
-            'amount': req.get('queryResult').get('parameters').get('recovery_time').get('amount'),
-            'unit': req.get('queryResult').get('parameters').get('recovery_time').get('unit')
+    if intent == Intent.SELECT_SERVICE:
+        fulfillmentText = {'fulfillmentText': 'I am selecting {}'.format(params.get('service_name'))}
+        params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
+    elif intent == Intent.SPECIFICATION:
+        params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
+        params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
+        params[Param.INITIAL_LOSS] = query_params.get(ReqParam.INITIAL_LOSS)
+        params[Param.RECOVERY_TIME] = {
+            Param.AMOUNT: req.getquery_params.get(ReqParam.RECOVERY_TIME).get(ReqParam.AMOUNT),
+            Param.UNIT: query_params.get(ReqParam.RECOVERY_TIME).get(ReqParam.UNIT)
         }
-        params['loss_of_resilience'] = req.get('queryResult').get('parameters').get('loss_of_resilience')
+        params[Param.LOSS_OFF_RESILIENCE] = query_params.get(ReqParam.LOSS_OFF_RESILIENCE)
 
+        # Create specification object
+        service = Service.objects.get(name=params[Param.SERVICE_NAME])
+        Specification.objects.create(
+            service=service,
+            cause=params[Param.TB_CAUSE],
+            max_initial_loss=params[Param.INITIAL_LOSS],
+            max_recovery_time=Utils.duration_to_seconds(params[Param.RECOVERY_TIME]),
+            max_lor=params[Param.LOSS_OFF_RESILIENCE]
+        )
+
+        fulfillmentText = {
+            'fulfillmentText': 'I specified the following transient behavior for {} in case of {}: initial loss: {}, recovery time: {}s, loss of resilience: {}'.format(
+                params[Param.SERVICE_NAME], params[Param.TB_CAUSE], params[Param.INITIAL_LOSS],
+                Utils.duration_to_seconds(params[Param.RECOVERY_TIME]), params[Param.LOSS_OFF_RESILIENCE])}
+    elif intent == Intent.SHOW_SPECIFICATION:
+        fulfillmentText = {'fulfillmentText': 'Here is you specification.'}
+        params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
 
     # Send message via websockets
     layer = get_channel_layer()
@@ -43,24 +63,6 @@ def dialogflow(request):
         'intent': intent,
         'params': params
     })
-
-    if intent == 'Show Architecture':
-        fulfillmentText = {'fulfillmentText': 'Here is your architecture.'}
-    elif intent == 'Show Specification':
-        fulfillmentText = {'fulfillmentText': 'Here is you specification.'}
-    elif intent == 'Select Service':
-        fulfillmentText = {'fulfillmentText': 'I am selecting {}'.format(params.get('service_name'))}
-    elif intent == 'Specification':
-        fulfillmentText = {'fulfillmentText' : 'I specified the following transient behavior for {} in case of {}: initial loss: {}, recovery time: {}s, loss of resilience: {}'.format(params['service_name'], params['tb_cause'], params['initial_loss'], Utils.duration_to_seconds(params['recovery_time']), params['loss_of_resilience'])}
-
-        service = Service.objects.get(name=params['service_name'])
-        Specification.objects.create(
-            service=service,
-            cause=params['tb_cause'],
-            max_initial_loss=params['initial_loss'],
-            max_recovery_time=Utils.duration_to_seconds(params['recovery_time']),
-            max_lor=params['loss_of_resilience']
-        )
 
     return JsonResponse(fulfillmentText, safe=False)
 
