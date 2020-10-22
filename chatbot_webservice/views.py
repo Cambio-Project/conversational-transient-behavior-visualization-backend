@@ -24,7 +24,6 @@ def dialogflow(request):
     query_params = query_result.get(ReqParam.PARAMETERS)
 
     logger.info(f'INTENT: {intent}')
-    fulfillmentText = {'fulfillmentText': 'Hello, Im the fulfillment'}
     params = {}
 
     if intent == Intent.SELECT_SERVICE:
@@ -66,7 +65,6 @@ def dialogflow(request):
         else:
             fulfillmentText = {'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
     elif intent == Intent.EDIT_SPECIFICATION_LOSS:
-        fulfillmentText = {'fulfillmentText': 'Im already sending this!'}
         logger.info('Entering edit specification loss intent')
         params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
         params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
@@ -82,7 +80,6 @@ def dialogflow(request):
         else:
             logger.info('Did not find specification object')
             fulfillmentText = {'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
-        fulfillmentText = {'fulfillmentText': 'This time it worked!'}
     elif intent == Intent.EDIT_SPECIFICATION_RECOVERY_TIME:
         params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
         params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
