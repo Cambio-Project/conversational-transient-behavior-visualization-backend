@@ -23,6 +23,8 @@ def dialogflow(request):
     intent = query_result.get(ReqParam.INTENT).get(ReqParam.DISPLAY_NAME)
     query_params = query_result.get(ReqParam.PARAMETERS)
 
+    logger.info(f'INTENT: {intent}')
+
     params = {}
 
     if intent == Intent.SELECT_SERVICE:
