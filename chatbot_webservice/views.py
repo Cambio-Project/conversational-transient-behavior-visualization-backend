@@ -28,7 +28,7 @@ def dialogflow(request):
     if intent == Intent.SELECT_SERVICE:
         fulfillmentText = {'fulfillmentText': 'I am selecting {}'.format(params.get('service_name'))}
         params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
-    elif intent == Intent.SPECIFICATION:
+    elif intent == Intent.ADD_SPECIFICATION:
         params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
         params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
         params[Param.INITIAL_LOSS] = query_params.get(ReqParam.INITIAL_LOSS)
@@ -52,6 +52,17 @@ def dialogflow(request):
             'fulfillmentText': 'I specified the following transient behavior for {} in case of {}: initial loss: {}, recovery time: {}s, loss of resilience: {}'.format(
                 params[Param.SERVICE_NAME], params[Param.TB_CAUSE], params[Param.INITIAL_LOSS],
                 Utils.duration_to_seconds(params[Param.RECOVERY_TIME]), params[Param.LOSS_OFF_RESILIENCE])}
+    elif intent == Intent.DELETE_SPECIFICATION:
+        params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
+        params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
+
+        # Delete specification object
+        specification = Specification.objects.get(service__name=params[Param.SERVICE_NAME], cause=params[Param.TB_CAUSE])
+        if specification:
+            specification.delete()
+            fulfillmentText = {'fulfillmentText': f'I deleted the transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
+        else:
+            fulfillmentText = {'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
     elif intent == Intent.SHOW_SPECIFICATION:
         fulfillmentText = {'fulfillmentText': 'Here is you specification.'}
         params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)

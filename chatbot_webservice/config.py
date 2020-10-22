@@ -3,7 +3,8 @@
 class Intent:
     SELECT_SERVICE = 'Select Service'
     SHOW_SPECIFICATION = 'Show Specification'
-    SPECIFICATION = 'Specification'
+    ADD_SPECIFICATION = 'Add Specification'
+    DELETE_SPECIFICATION = 'Delete Specification'
 
 
 class Param:
