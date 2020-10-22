@@ -32,4 +32,4 @@ class SpecificationSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Specification
-        fields = ('service', 'cause', 'max_initial_loss', 'max_recovery_time', 'max_lor')
+        fields = ('id', 'service', 'cause', 'max_initial_loss', 'max_recovery_time', 'max_lor')
