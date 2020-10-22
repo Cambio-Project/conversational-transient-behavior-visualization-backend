@@ -34,7 +34,7 @@ def dialogflow(request):
         params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
         params[Param.INITIAL_LOSS] = query_params.get(ReqParam.INITIAL_LOSS)
         params[Param.RECOVERY_TIME] = {
-            Param.AMOUNT: req.getquery_params.get(ReqParam.RECOVERY_TIME).get(ReqParam.AMOUNT),
+            Param.AMOUNT: query_params.get(ReqParam.RECOVERY_TIME).get(ReqParam.AMOUNT),
             Param.UNIT: query_params.get(ReqParam.RECOVERY_TIME).get(ReqParam.UNIT)
         }
         params[Param.LOSS_OFF_RESILIENCE] = query_params.get(ReqParam.LOSS_OFF_RESILIENCE)
@@ -84,7 +84,7 @@ def dialogflow(request):
         params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
         params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
         params[Param.RECOVERY_TIME] = {
-            Param.AMOUNT: req.getquery_params.get(ReqParam.RECOVERY_TIME).get(ReqParam.AMOUNT),
+            Param.AMOUNT: query_params.get(ReqParam.RECOVERY_TIME).get(ReqParam.AMOUNT),
             Param.UNIT: query_params.get(ReqParam.RECOVERY_TIME).get(ReqParam.UNIT)
         }
 
