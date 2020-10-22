@@ -63,6 +63,36 @@ def dialogflow(request):
             fulfillmentText = {'fulfillmentText': f'I deleted the transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
         else:
             fulfillmentText = {'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
+    elif intent == Intent.EDIT_SPECIFICATION_LOSS:
+        params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
+        params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
+        params[Param.INITIAL_LOSS] = query_params.get(ReqParam.INITIAL_LOSS)
+
+        # Update specification object
+        specification = Specification.objects.get(service__name=params[Param.SERVICE_NAME], cause=params[Param.TB_CAUSE])
+        if specification:
+            specification.max_initial_loss = params[Param.INITIAL_LOSS]
+            fulfillmentText = {'fulfillmentText': f'Updated the initial loss for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]} to {params[Param.INITIAL_LOSS]}'}
+        else:
+            fulfillmentText = {'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
+    elif intent == Intent.EDIT_SPECIFICATION_RECOVERY_TIME:
+        params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
+        params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
+        params[Param.RECOVERY_TIME] = {
+            Param.AMOUNT: req.getquery_params.get(ReqParam.RECOVERY_TIME).get(ReqParam.AMOUNT),
+            Param.UNIT: query_params.get(ReqParam.RECOVERY_TIME).get(ReqParam.UNIT)
+        }
+
+        # Update specification object
+        specification = Specification.objects.get(service__name=params[Param.SERVICE_NAME],
+                                                  cause=params[Param.TB_CAUSE])
+        if specification:
+            specification.max_recovery_time = Utils.duration_to_seconds(params[Param.RECOVERY_TIME])
+            fulfillmentText = {
+                'fulfillmentText': f'Updated the recovery time for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]} to {Utils.duration_to_seconds(params[Param.RECOVERY_TIME])} s'}
+        else:
+            fulfillmentText = {
+                'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
     elif intent == Intent.SHOW_SPECIFICATION:
         fulfillmentText = {'fulfillmentText': 'Here is you specification.'}
         params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)

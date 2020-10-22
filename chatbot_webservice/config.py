@@ -5,6 +5,8 @@ class Intent:
     SHOW_SPECIFICATION = 'Show Specification'
     ADD_SPECIFICATION = 'Add Specification'
     DELETE_SPECIFICATION = 'Delete Specification'
+    EDIT_SPECIFICATION_LOSS = 'Edit specification loss'
+    EDIT_SPECIFICATION_RECOVERY_TIME = 'Edit Specification recovery time'
 
 
 class Param:
