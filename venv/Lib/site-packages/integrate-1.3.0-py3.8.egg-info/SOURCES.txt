@@ -1,0 +1,11 @@
+README.rst
+setup.cfg
+setup.py
+integrate/__init__.py
+integrate/check.py
+integrate/discover.py
+integrate/test.py
+integrate.egg-info/PKG-INFO
+integrate.egg-info/SOURCES.txt
+integrate.egg-info/dependency_links.txt
+integrate.egg-info/top_level.txt

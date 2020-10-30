@@ -1,9 +1,10 @@
 import numpy as np
+from scipy import integrate
 
 from chatbot_webservice.models import Service, ServiceData, Specification
 
-expected_qos = 100
-qos_threshold = 90
+expected_qos = 100.0
+qos_threshold = 90.0
 median_range = 5
 call_ids = {
     'loon-service': [0, 1, 2, 3, 4],
@@ -54,6 +55,13 @@ def get_end_index(data, idx):
     return len(data) - 1
 
 
+def get_specification_end_index(data, idx, specification_endpoint):
+    current_idx = idx
+    while data[current_idx].time < specification_endpoint:
+        current_idx += 1
+    return current_idx
+
+
 def find_transient_behavior(data: ServiceData, specification: Specification):
     max_recovery_time = specification.max_recovery_time
     specification_endpoint = -1.0
@@ -67,18 +75,44 @@ def find_transient_behavior(data: ServiceData, specification: Specification):
                 if is_initial_loss(data, i):
                     start_index = get_start_index(data, i)
                     end_index = get_end_index(data, start_index)
-                    transient_behavior_indices.append([start_index, end_index])
-                    transient_behavior_endpoint = data[end_index].time
                     specification_endpoint = data[start_index].time + max_recovery_time
 
+                    if data[end_index].time < specification_endpoint:
+                        end_index = get_specification_end_index(data, end_index, specification_endpoint)
+
+                    transient_behavior_indices.append([start_index, end_index])
+                    transient_behavior_endpoint = data[end_index].time
+
     return transient_behavior_indices
+
+
+def compute_expected_integral(complete_data, start_idx, end_idx):
+    # create numpy arrays
+    data = complete_data[start_idx:end_idx + 1]
+    x_list = list(map(lambda item: float(item.time), data))
+    y = np.full((end_idx + 1 - start_idx,), expected_qos)
+    x = np.array(x_list)
+
+    cum_int = integrate.cumtrapz(y, x, initial=0)
+    return cum_int
+
+
+def compute_actual_integral(complete_data, start_idx, end_idx):
+    # turn qos values into a numpy array
+    data = complete_data[start_idx:end_idx + 1]
+    y_list = list(map(lambda item: float(item.qos), data))
+    x_list = list(map(lambda item: float(item.time), data))
+    y = np.array(y_list)
+    x = np.array(x_list)
+
+    cum_int = integrate.cumtrapz(y, x, initial=0)
+    return cum_int
 
 
 services = Service.objects.all()
 
 for service in services:
     endpoints = call_ids[service.name]
-
     for endpoint in endpoints:
         for cause in tb_causes:
             try:
@@ -87,6 +121,11 @@ for service in services:
 
                 tb_occurrences = find_transient_behavior(data, specification)
                 print(f'{service.name}, {endpoint}, {cause}: {tb_occurrences}')
+
+                for transient_behavior in tb_occurrences:
+                    expected_integral = compute_expected_integral(data, transient_behavior[0], transient_behavior[1])
+                    actual_integral = compute_actual_integral(data, transient_behavior[0], transient_behavior[1])
+                    resilience_loss = expected_integral - actual_integral
 
             except Specification.DoesNotExist:
                 print(f'No specification for {service.name} in case of {cause}')
