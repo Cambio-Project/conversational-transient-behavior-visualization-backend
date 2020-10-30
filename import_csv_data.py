@@ -8,6 +8,7 @@ percentile = 80
 counter = 0
 
 
+######################################## methods #################################################################
 def compute_percentile(service, call_id, k):
     values = []
 
@@ -32,7 +33,6 @@ def assign_percentile(qos, service, call_id):
 
 
 def create_expected_qos_map():
-
     qos = {
         'loon-service': {
             '0': -1.0,
@@ -54,6 +54,7 @@ def create_expected_qos_map():
     assign_percentile(qos, 'loon-service2', '5')
 
     return qos
+######################################## methods #################################################################
 
 
 specifiedResponseTimes = create_expected_qos_map()
