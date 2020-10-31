@@ -1,8 +1,8 @@
 import numpy as np
-from scipy import integrate
 
-from .models import Service, ServiceData, Specification
+from .models import Service, ServiceData
 from .config import Param, TbCause
+from .math import Math
 
 
 class Utils:
@@ -104,21 +104,18 @@ class LossService:
 
     def _compute_expected_integral(self, complete_data, start_idx, end_idx):
         data = complete_data[start_idx:end_idx + 1]
-        x_list = list(map(lambda item: float(item.time), data))
-        y = np.full((end_idx + 1 - start_idx,), self.__expected_qos)
-        x = np.array(x_list)
+        x = list(map(lambda item: float(item.time), data))
+        y = [self.__expected_qos] * len(x)
 
-        cum_int = integrate.cumtrapz(y, x, initial=0)
+        cum_int = Math.integrate(y, x)
         return cum_int
 
     def _compute_actual_integral(self, complete_data, start_idx, end_idx):
         data = complete_data[start_idx:end_idx + 1]
-        y_list = list(map(lambda item: float(item.qos), data))
-        x_list = list(map(lambda item: float(item.time), data))
-        y = np.array(y_list)
-        x = np.array(x_list)
+        y = list(map(lambda item: float(item.qos), data))
+        x = list(map(lambda item: float(item.time), data))
 
-        cum_int = integrate.cumtrapz(y, x, initial=0)
+        cum_int = Math.integrate(y, x)
         return cum_int
 
     def _add_failure_loss(self, item, loss):
@@ -170,7 +167,11 @@ class LossService:
             for tb in tb_occurrences:
                 exp_integral = self._compute_expected_integral(data, tb[0], tb[1])
                 act_integral = self._compute_actual_integral(data, tb[0], tb[1])
-                resilience_loss = exp_integral - act_integral
+
+                resilience_loss = []
+                for i in range(len(exp_integral)):
+                    loss = exp_integral[i] - act_integral[i]
+                    resilience_loss.append(loss)
 
                 # add the computed loss to the service data for this call_id
                 self._add_loss_to_data_objects(data, tb, resilience_loss)

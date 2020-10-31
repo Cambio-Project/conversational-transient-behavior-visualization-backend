@@ -2,6 +2,7 @@ import numpy as np
 from scipy import integrate
 
 from chatbot_webservice.models import Service, ServiceData, Specification
+from chatbot_webservice.math import Math
 
 expected_qos = 100.0
 qos_threshold = 90.0
@@ -108,6 +109,25 @@ def compute_actual_integral(complete_data, start_idx, end_idx):
     cum_int = integrate.cumtrapz(y, x, initial=0)
     return cum_int
 
+def compute_my_expected_integral(complete_data, start_idx, end_idx):
+    # create numpy arrays
+    data = complete_data[start_idx:end_idx + 1]
+    x_list = list(map(lambda item: float(item.time), data))
+    y_list = [expected_qos] * ((end_idx + 1) - start_idx)
+
+    print(f'x len: {len(x_list)}, y len: {len(y_list)}')
+
+    cum_int = Math.integrate(y_list, x_list)
+    return cum_int
+
+def compute_my_actual_integral(complete_data, start_idx, end_idx):
+    data = complete_data[start_idx:end_idx + 1]
+    y_list = list(map(lambda item: float(item.qos), data))
+    x_list = list(map(lambda item: float(item.time), data))
+
+    cum_int = Math.integrate(y_list, x_list)
+    return cum_int
+
 
 services = Service.objects.all()
 
@@ -125,7 +145,18 @@ for service in services:
                 for transient_behavior in tb_occurrences:
                     expected_integral = compute_expected_integral(data, transient_behavior[0], transient_behavior[1])
                     actual_integral = compute_actual_integral(data, transient_behavior[0], transient_behavior[1])
+                    exp_2 = compute_my_expected_integral(data, transient_behavior[0], transient_behavior[1])
+                    act_2 = compute_my_actual_integral(data, transient_behavior[0], transient_behavior[1])
                     resilience_loss = expected_integral - actual_integral
+                    resilience_loss2 = []
+                    for i in range(len(exp_2)):
+                        resilience_loss2.append(exp_2[i] - act_2[i])
+
+                    print('SciVis')
+                    print(resilience_loss)
+                    print('\n')
+                    print('Mine')
+                    print(resilience_loss2)
 
             except Specification.DoesNotExist:
                 print(f'No specification for {service.name} in case of {cause}')
