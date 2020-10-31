@@ -153,3 +153,7 @@ class SpecificationViewSet(viewsets.ModelViewSet):
         if cause:
             queryset = queryset.filter(cause=cause)
         return queryset
+
+    def create(self, request, *args, **kwargs):
+
+        super(SpecificationViewSet, self).create(request, args, kwargs)

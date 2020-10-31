@@ -31,3 +31,9 @@ class ReqParam:
     AMOUNT = 'amount'
     UNIT = 'unit'
     LOSS_OFF_RESILIENCE = 'loss_of_resilience'
+
+
+class TbCause:
+    FAILURE = 'failure'
+    DEPLOYMENT = 'deployment'
+    LOAD_BALANCING = 'load-balancing'
