@@ -27,9 +27,9 @@ class ServiceData(models.Model):
     failedTransactions = models.IntegerField(null=False)
     droppedTransactions = models.IntegerField(null=False)
     qos = models.IntegerField(null=False)
-    failureLoss = models.DecimalField(null=False, default=0.0000, decimal_places=4, max_digits=10)
-    deploymentLoss = models.DecimalField(null=False, default=0.0000, decimal_places=4, max_digits=10)
-    loadBalancingLoss = models.DecimalField(null=False, default=0.0000, decimal_places=4, max_digits=10)
+    failureLoss = models.DecimalField(null=False, default=0.0000, decimal_places=4, max_digits=16)
+    deploymentLoss = models.DecimalField(null=False, default=0.0000, decimal_places=4, max_digits=16)
+    loadBalancingLoss = models.DecimalField(null=False, default=0.0000, decimal_places=4, max_digits=16)
 
 
 class Specification(models.Model):
