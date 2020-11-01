@@ -32,8 +32,8 @@ class LossService:
     cause = None
     max_recovery_time = None
 
-    def __init__(self, service_id, cause, spec_recovery_time):
-        self.service = Service.objects.get(id=service_id)
+    def __init__(self, service, cause, spec_recovery_time):
+        self.service = service
         self.cause = cause
         self.max_recovery_time = spec_recovery_time
 
@@ -138,9 +138,9 @@ class LossService:
         for i, item in enumerate(relevant_data):
             if self.cause == TbCause.FAILURE:
                 self._add_failure_loss(item, loss[i])
-            if self.cause == TbCause.DEPLOYMENT:
-                self._add_deplpoyment_loss(item, loss[i])
-            if self.cause == TbCause.LOAD_BALANCING:
+            elif self.cause == TbCause.DEPLOYMENT:
+                self._add_deployment_loss(item, loss[i])
+            elif self.cause == TbCause.LOAD_BALANCING:
                 self._add_load_balancing_loss(item, loss[i])
         print(f'Added loss to data items')
 
@@ -152,19 +152,23 @@ class LossService:
         else:
             return []
 
+    def _reset_loss(self):
+        data = ServiceData.objects.filter(service_id=self.service.id)
+        if self.cause == TbCause.FAILURE:
+            data.update(failureLoss=0.0)
+        elif self.cause == TbCause.DEPLOYMENT:
+            data.update(deploymentLoss=0.0)
+        elif self.cause == TbCause.LOAD_BALANCING:
+            data.update(loadBalancingLoss=0.0)
+
     def compute_resilience_loss(self):
-        # get all service call_ids
+        self._reset_loss()
+
         call_ids = self._get_call_ids()
-
         for call_id in call_ids:
-            # get service data for this call_id
             data = ServiceData.objects.filter(service_id=self.service.id, callId=call_id).order_by('time')
-
-            # find occurrences of transient behavior
             tb_occurrences = self._find_transient_behavior(data)
-            print(f'{self.service.name}, {call_id}, {tb_occurrences}')
 
-            # compute resilience loss for each of those occurrences
             for tb in tb_occurrences:
                 exp_integral = self._compute_expected_integral(data, tb[0], tb[1])
                 act_integral = self._compute_actual_integral(data, tb[0], tb[1])
@@ -174,8 +178,7 @@ class LossService:
                     loss = exp_integral[i] - act_integral[i]
                     resilience_loss.append(loss)
 
-                # add the computed loss to the service data for this call_id
                 self._add_loss_to_data_objects(data, tb, resilience_loss)
 
-        # inform visualization that new loss data is available
-        # TODO
+    def remove_resilience_loss(self):
+        self._reset_loss()

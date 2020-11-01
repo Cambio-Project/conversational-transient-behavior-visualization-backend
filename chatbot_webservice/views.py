@@ -9,7 +9,7 @@ import logging
 
 from .serializers import ServiceSerializer, DependencySerializer, ServiceDataSerializer, SpecificationSerializer
 from .models import Service, Dependency, ServiceData, Specification
-from .utils import Utils
+from .utils import Utils, LossService
 from .config import Intent, Param, ReqParam
 
 logger = logging.getLogger(__name__)
@@ -155,5 +155,25 @@ class SpecificationViewSet(viewsets.ModelViewSet):
         return queryset
 
     def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.validated_data
+            service = data['service']
+            cause = data['cause']
+            max_recovery_time = data['max_recovery_time']
 
-        super(SpecificationViewSet, self).create(request, args, kwargs)
+            ls = LossService(service, cause, max_recovery_time)
+            ls.compute_resilience_loss()
+
+        return super().create(request, args, kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        spec = self.get_object()
+        service = spec.service
+        cause = spec.cause
+        max_recovery_time = spec.max_recovery_time
+
+        ls = LossService(service, cause, max_recovery_time)
+        ls.remove_resilience_loss()
+
+        return super().destroy(request, args, kwargs)
