@@ -115,7 +115,6 @@ def dialogflow(request):
 
 
 class ServiceViewSet(viewsets.ModelViewSet):
-    queryset = Service.objects.all().order_by('id')
     serializer_class = ServiceSerializer
 
     def get_queryset(self):
@@ -129,8 +128,16 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
 
 class DependencyViewSet(viewsets.ModelViewSet):
-    queryset = Dependency.objects.all()
     serializer_class = DependencySerializer
+
+    def get_queryset(self):
+        queryset = Dependency.objects.all()
+        system = self.request.query_params.get('system')
+
+        if system:
+            queryset = queryset.filter(system=system)
+
+        return queryset
 
 
 class ServiceDataViewSet(viewsets.ModelViewSet):

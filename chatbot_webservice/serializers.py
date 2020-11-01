@@ -15,7 +15,7 @@ class DependencySerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Dependency
-        fields = ('source', 'target')
+        fields = ('source', 'target', 'system')
 
 
 class ServiceDataSerializer(serializers.HyperlinkedModelSerializer):

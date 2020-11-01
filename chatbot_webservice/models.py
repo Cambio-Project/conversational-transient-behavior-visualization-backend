@@ -13,6 +13,7 @@ class Service(models.Model):
 
 
 class Dependency(models.Model):
+    system = models.CharField(max_length=200)
     source = models.ForeignKey(Service, related_name='source', on_delete=models.CASCADE)
     target = models.ForeignKey(Service, related_name='target', on_delete=models.CASCADE)
 
