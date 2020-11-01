@@ -158,10 +158,11 @@ class LossService:
 
         for call_id in call_ids:
             # get service data for this call_id
-            data = ServiceData.objects.filter(service_id=self.service.id, callId=call_id)
+            data = ServiceData.objects.filter(service_id=self.service.id, callId=call_id).order_by('time')
 
             # find occurrences of transient behavior
             tb_occurrences = self._find_transient_behavior(data)
+            print(f'{self.service.name}, {call_id}, {tb_occurrences}')
 
             # compute resilience loss for each of those occurrences
             for tb in tb_occurrences:
