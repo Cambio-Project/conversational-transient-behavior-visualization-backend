@@ -31,11 +31,13 @@ class LossService:
     service = None
     cause = None
     max_recovery_time = None
+    max_loss = None
 
-    def __init__(self, service, cause, spec_recovery_time):
+    def __init__(self, service, cause, spec_recovery_time, max_loss):
         self.service = service
         self.cause = cause
         self.max_recovery_time = spec_recovery_time
+        self.max_loss = max_loss
 
     def _get_next_items(self, data, idx):
         last_index = idx + self.__median_range if idx + self.__median_range < len(data) else len(data) - 1
@@ -161,6 +163,18 @@ class LossService:
         elif self.cause == TbCause.LOAD_BALANCING:
             data.update(loadBalancingLoss=0.0)
 
+    def _get_violations(self):
+        if self.cause == TbCause.FAILURE:
+            return ServiceData.objects.filter(service_id=self.service.id, failureLoss__level__gt=self.max_loss)
+        elif self.cause == TbCause.DEPLOYMENT:
+            return ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__level__gt=self.max_loss)
+        elif self.cause == TbCause.LOAD_BALANCING:
+            return ServiceData.objects.filter(service_id=self.service.id, loadBalancingLoss__level__gt=self.max_loss)
+
+    def _update_service_object(self, has_violations):
+        self.service.violation_detected = has_violations
+        self.service.save()
+
     def compute_resilience_loss(self):
         self._reset_loss()
 
@@ -182,3 +196,11 @@ class LossService:
 
     def remove_resilience_loss(self):
         self._reset_loss()
+
+    def check_loss_violations(self):
+        violations = self._get_violations()
+
+        if violations:
+            self._update_service_object(True)
+        else:
+            self._update_service_object(False)

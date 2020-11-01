@@ -161,9 +161,11 @@ class SpecificationViewSet(viewsets.ModelViewSet):
             service = data['service']
             cause = data['cause']
             max_recovery_time = data['max_recovery_time']
+            max_loss = data['max_lor']
 
-            ls = LossService(service, cause, max_recovery_time)
+            ls = LossService(service, cause, max_recovery_time, max_loss)
             ls.compute_resilience_loss()
+            ls.check_loss_violations()
 
         return super().create(request, args, kwargs)
 
@@ -172,8 +174,9 @@ class SpecificationViewSet(viewsets.ModelViewSet):
         service = spec.service
         cause = spec.cause
         max_recovery_time = spec.max_recovery_time
+        max_loss = spec.max_lor
 
-        ls = LossService(service, cause, max_recovery_time)
+        ls = LossService(service, cause, max_recovery_time, max_loss)
         ls.remove_resilience_loss()
 
         return super().destroy(request, args, kwargs)
