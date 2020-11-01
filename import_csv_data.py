@@ -3,7 +3,7 @@ import numpy as np
 
 from chatbot_webservice.models import Service, ServiceData
 
-file_path = 'results_monkey_nopattern.csv'
+file_path = 'accounting.csv'
 percentile = 80
 counter = 0
 
@@ -85,9 +85,6 @@ with open(file_path, newline='') as csv_file:
             time=row[0],
             callId=call_id,
             uri=row[4],
-            successfulTransactions=row[5],
-            failedTransactions=row[6],
-            droppedTransactions=row[7],
             qos=qos
         )
 
