@@ -165,11 +165,11 @@ class LossService:
 
     def _get_violations(self):
         if self.cause == TbCause.FAILURE:
-            return ServiceData.objects.filter(service_id=self.service.id, failureLoss__level__gt=self.max_loss)
+            return ServiceData.objects.filter(service_id=self.service.id, failureLoss__gt=self.max_loss)
         elif self.cause == TbCause.DEPLOYMENT:
-            return ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__level__gt=self.max_loss)
+            return ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__gt=self.max_loss)
         elif self.cause == TbCause.LOAD_BALANCING:
-            return ServiceData.objects.filter(service_id=self.service.id, loadBalancingLoss__level__gt=self.max_loss)
+            return ServiceData.objects.filter(service_id=self.service.id, loadBalancingLoss__gt=self.max_loss)
 
     def _update_service_object(self, has_violations):
         self.service.violation_detected = has_violations
