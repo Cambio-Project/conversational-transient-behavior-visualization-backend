@@ -118,6 +118,15 @@ class ServiceViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all().order_by('id')
     serializer_class = ServiceSerializer
 
+    def get_queryset(self):
+        queryset = Service.objects.all().order_by('id')
+        system = self.request.query_params.get('system')
+
+        if system:
+            queryset = queryset.filter(system=system).order_by('id')
+
+        return queryset
+
 
 class DependencyViewSet(viewsets.ModelViewSet):
     queryset = Dependency.objects.all()
