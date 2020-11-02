@@ -118,13 +118,14 @@ with open(file_path, newline='') as csv_file:
                 if qos > 100:
                     qos = 100
 
-            ServiceData.objects.create(
-                service=service,
-                time=time,
-                callId=call_id,
-                uri=uri,
-                qos=qos
-            )
+            # ServiceData.objects.create(
+            #     service=service,
+            #     time=time,
+            #     callId=call_id,
+            #     uri=uri,
+            #     qos=qos
+            # )
+            print(service, time, call_id, uri, qos)
 
             if counter % 50 == 0:
                 print(counter, end='\r')
