@@ -78,7 +78,7 @@ class LossService:
 
     def _get_specification_end_index(self, data, idx, specification_endpoint):
         current_idx = idx
-        while data[current_idx].time < specification_endpoint:
+        while current_idx < len(data) - 1 and data[current_idx].time < specification_endpoint:
             current_idx += 1
         return current_idx
 
@@ -147,12 +147,14 @@ class LossService:
         print(f'Added loss to data items')
 
     def _get_call_ids(self):
-        if self.service.name == 'loon-service':
-            return [0, 1, 2, 3, 4]
-        elif self.service.name == 'loon-service2':
+        if self.service.name == 'loon-service2':
             return [5]
         else:
-            return []
+            num_endpoints = len(self.service.endpoints)
+            call_ids = []
+            for i in range(0, num_endpoints):
+                call_ids.append(i)
+            return call_ids
 
     def _reset_loss(self):
         data = ServiceData.objects.filter(service_id=self.service.id)

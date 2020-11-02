@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from scipy import integrate
 
 from chatbot_webservice.models import Service, ServiceData, Specification
 from chatbot_webservice.math import Math
@@ -135,41 +134,38 @@ def compute_my_actual_integral(complete_data, start_idx, end_idx):
 
 services = Service.objects.all()
 
-for service in services:
-    endpoints = call_ids[service.name]
-    for endpoint in endpoints:
-        cause = 'failure'
-        try:
-            specification = Specification.objects.get(service_id=service.id, cause=cause)
-            data = ServiceData.objects.all().filter(service_id=service.id, callId=endpoint).order_by('time')
+service = services.get(name='Cart')
+endpoint = 0
+cause = 'deployment'
+try:
+    specification = Specification.objects.get(service_id=service.id, cause=cause)
+    data = ServiceData.objects.all().filter(service_id=service.id, callId=endpoint).order_by('time')
 
-            tb_occurrences = find_transient_behavior(data, specification)
-            print(tb_occurrences)
+    tb_occurrences = find_transient_behavior(data, specification)
+    print(tb_occurrences)
 
-            for transient_behavior in tb_occurrences:
-                expected_integral = compute_expected_integral(data, transient_behavior[0], transient_behavior[1])
-                actual_integral = compute_actual_integral(data, transient_behavior[0], transient_behavior[1])
+    for transient_behavior in tb_occurrences:
+        expected_integral = compute_my_expected_integral(data, transient_behavior[0], transient_behavior[1])
+        actual_integral = compute_my_actual_integral(data, transient_behavior[0], transient_behavior[1])
 
-                resilience_loss = expected_integral - actual_integral
-                # resilience_loss = []
-                # for i in range(len(expected_integral)):
-                #     resilience_loss.append(expected_integral[i] - actual_integral[i])
+        resilience_loss = []
+        for i in range(len(expected_integral)):
+            resilience_loss.append(expected_integral[i] - actual_integral[i])
 
-                # print(resilience_loss)
+        print(resilience_loss)
 
-                if endpoint == 0:
-                    clip = data[transient_behavior[0]:transient_behavior[1] + 1]
-                    time = list(map(lambda item: float(item.time), clip))
+        if endpoint == 0:
+            clip = data[transient_behavior[0]:transient_behavior[1] + 1]
+            time = list(map(lambda item: float(item.time), clip))
 
-                    # print(time)
+            # print(time)
 
-                    x = np.array(time)
-                    # y = np.array(resilience_loss)
-                    y = resilience_loss
+            x = np.array(time)
+            y = np.array(resilience_loss)
 
-                    fig, ax = plt.subplots()
-                    ax.plot(x, y)
-                    plt.show()
+            fig, ax = plt.subplots()
+            ax.plot(x, y)
+            plt.show()
 
-        except Specification.DoesNotExist:
-            print(f'No specification for {service.name} in case of {cause}')
+except Specification.DoesNotExist:
+    print(f'No specification for {service.name} in case of {cause}')
