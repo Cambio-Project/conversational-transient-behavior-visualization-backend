@@ -120,9 +120,12 @@ class ServiceViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Service.objects.all().order_by('id')
         system = self.request.query_params.get('system')
+        scenario = self.request.query_params.get('scenario')
 
         if system:
             queryset = queryset.filter(system=system).order_by('id')
+        if scenario:
+            queryset = queryset.filter(scenario=scenario).order_by('id')
 
         return queryset
 

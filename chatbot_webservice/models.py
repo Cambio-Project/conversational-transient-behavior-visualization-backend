@@ -4,6 +4,7 @@ from django.contrib.postgres.fields import ArrayField
 
 class Service(models.Model):
     system = models.CharField(max_length=200)
+    scenario = models.IntegerField(max_length=3)
     name = models.CharField(max_length=200, null=False, blank=False)
     endpoints = ArrayField(models.CharField(max_length=300), blank=True)
     violation_detected = models.BooleanField(default=False)
