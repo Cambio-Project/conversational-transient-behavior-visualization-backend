@@ -1,6 +1,6 @@
 import numpy as np
 
-from .models import Service, ServiceData
+from .models import Service, ServiceData, Specification
 from .config import Param, TbCause
 from .math import Math
 
@@ -173,6 +173,28 @@ class LossService:
         elif self.cause == TbCause.LOAD_BALANCING:
             return ServiceData.objects.filter(service_id=self.service.id, loadBalancingLoss__gt=self.max_loss)
 
+    def _reevaluate_loss_violations(self):
+        violations = []
+        if self.cause == TbCause.FAILURE:
+            max_deployment_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.DEPLOYMENT).max_lor
+            max_load_balancing_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.LOAD_BALANCING).max_lor
+            violations += ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__gt=max_deployment_loss)
+            violations += ServiceData.objects.filter(service_id=self.service.id, loadBalancingLoss__gt=max_load_balancing_loss)
+        elif self.cause == TbCause.DEPLOYMENT:
+            max_failure_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.FAILURE).max_lor
+            max_load_balancing_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.LOAD_BALANCING).max_lor
+            violations += ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__gt=max_failure_loss)
+            violations += ServiceData.objects.filter(service_id=self.service.id, loadBalancingLoss__gt=max_load_balancing_loss)
+        elif self.cause == TbCause.LOAD_BALANCING:
+            max_failure_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.FAILURE).max_lor
+            max_deployment_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.DEPLOYMENT).max_lor
+            violations += ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__gt=max_failure_loss)
+            violations += ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__gt=max_deployment_loss)
+        if violations:
+            self._update_service_object(True)
+        else:
+            self._update_service_object(False)
+
     def _update_service_object(self, has_violations):
         self.service.violation_detected = has_violations
         self.service.save()
@@ -198,6 +220,7 @@ class LossService:
 
     def remove_resilience_loss(self):
         self._reset_loss()
+        self._reevaluate_loss_violations()
 
     def check_loss_violations(self):
         violations = self._get_violations()
