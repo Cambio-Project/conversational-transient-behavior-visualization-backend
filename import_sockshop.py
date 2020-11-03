@@ -3,6 +3,9 @@ import numpy as np
 
 from chatbot_webservice.models import Service, ServiceData
 
+SCENARIO = 0
+SYSTEM = 'SockShop'
+
 file_path = 'sockshop.csv'
 percentile = 90
 counter = 0
@@ -119,6 +122,8 @@ with open(file_path, newline='') as csv_file:
                     qos = 100
 
             ServiceData.objects.create(
+                system=SYSTEM,
+                scenario=SCENARIO,
                 service=service,
                 time=time,
                 callId=call_id,
