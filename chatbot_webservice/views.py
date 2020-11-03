@@ -39,6 +39,9 @@ def dialogflow(request):
         }
         params[Param.LOSS_OFF_RESILIENCE] = query_params.get(ReqParam.LOSS_OFF_RESILIENCE)
 
+        if params[Param.LOSS_OFF_RESILIENCE] == '':
+            params[Param.LOSS_OFF_RESILIENCE] = (params[Param.INITIAL_LOSS] * params[Param.RECOVERY_TIME]) / 2
+
         # Create specification object
         service = Service.objects.get(name=params[Param.SERVICE_NAME])
         Specification.objects.create(
@@ -48,6 +51,14 @@ def dialogflow(request):
             max_recovery_time=Utils.duration_to_seconds(params[Param.RECOVERY_TIME]),
             max_lor=params[Param.LOSS_OFF_RESILIENCE]
         )
+
+        # Compute resilience loss
+        ls = LossService(service, params[Param.TB_CAUSE], params[Param.RECOVERY_TIME], params[Param.LOSS_OFF_RESILIENCE])
+        ls.compute_resilience_loss()
+        ls.check_loss_violations()
+
+        # Notify visualization
+
 
         fulfillmentText = {
             'fulfillmentText': 'I specified the following transient behavior for {} in case of {}: initial loss: {}, recovery time: {}s, loss of resilience: {}'.format(
