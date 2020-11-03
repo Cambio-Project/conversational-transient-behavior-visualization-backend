@@ -40,7 +40,8 @@ def dialogflow(request):
         params[Param.LOSS_OFF_RESILIENCE] = query_params.get(ReqParam.LOSS_OFF_RESILIENCE)
 
         if params[Param.LOSS_OFF_RESILIENCE] == '':
-            params[Param.LOSS_OFF_RESILIENCE] = (params[Param.INITIAL_LOSS] * params[Param.RECOVERY_TIME]) / 2
+            max_recovery_duration = Utils.duration_to_seconds(params[Param.RECOVERY_TIME])
+            params[Param.LOSS_OFF_RESILIENCE] = (params[Param.INITIAL_LOSS] * max_recovery_duration) / 2
 
         # Create specification object
         service = Service.objects.get(name=params[Param.SERVICE_NAME])
