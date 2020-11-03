@@ -27,8 +27,8 @@ def dialogflow(request):
     params = {}
 
     if intent == Intent.SELECT_SERVICE:
-        fulfillmentText = {'fulfillmentText': 'I am selecting {}'.format(params.get('service_name'))}
         params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
+        fulfillmentText = {'fulfillmentText': 'I am selecting {}'.format(params.get('service_name'))}
     elif intent == Intent.ADD_SPECIFICATION:
         params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
         params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
