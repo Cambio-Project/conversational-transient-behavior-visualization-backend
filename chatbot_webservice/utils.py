@@ -175,21 +175,43 @@ class LossService:
 
     def _reevaluate_loss_violations(self):
         violations = []
+
         if self.cause == TbCause.FAILURE:
-            max_deployment_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.DEPLOYMENT).max_lor
-            max_load_balancing_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.LOAD_BALANCING).max_lor
-            violations += ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__gt=max_deployment_loss)
-            violations += ServiceData.objects.filter(service_id=self.service.id, loadBalancingLoss__gt=max_load_balancing_loss)
+            try:
+                max_deployment_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.DEPLOYMENT).max_lor
+                violations += ServiceData.objects.filter(service_id=self.service.id,
+                                                         deploymentLoss__gt=max_deployment_loss)
+            except Specification.DoesNotExist:
+                pass
+            try:
+                max_load_balancing_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.LOAD_BALANCING).max_lor
+                violations += ServiceData.objects.filter(service_id=self.service.id,
+                                                         loadBalancingLoss__gt=max_load_balancing_loss)
+            except Specification.DoesNotExist:
+                pass
         elif self.cause == TbCause.DEPLOYMENT:
-            max_failure_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.FAILURE).max_lor
-            max_load_balancing_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.LOAD_BALANCING).max_lor
-            violations += ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__gt=max_failure_loss)
-            violations += ServiceData.objects.filter(service_id=self.service.id, loadBalancingLoss__gt=max_load_balancing_loss)
+            try:
+                max_failure_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.FAILURE).max_lor
+                violations += ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__gt=max_failure_loss)
+            except Specification.DoesNotExist:
+                pass
+            try:
+                max_load_balancing_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.LOAD_BALANCING).max_lor
+                violations += ServiceData.objects.filter(service_id=self.service.id, loadBalancingLoss__gt=max_load_balancing_loss)
+            except Specification.DoesNotExist:
+                pass
         elif self.cause == TbCause.LOAD_BALANCING:
-            max_failure_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.FAILURE).max_lor
-            max_deployment_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.DEPLOYMENT).max_lor
-            violations += ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__gt=max_failure_loss)
-            violations += ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__gt=max_deployment_loss)
+            try:
+                max_failure_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.FAILURE).max_lor
+                violations += ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__gt=max_failure_loss)
+            except Specification.DoesNotExist:
+                pass
+            try:
+                max_deployment_loss = Specification.objects.get(service_id=self.service.id, cause=TbCause.DEPLOYMENT).max_lor
+                violations += ServiceData.objects.filter(service_id=self.service.id, deploymentLoss__gt=max_deployment_loss)
+            except Specification.DoesNotExist:
+                pass
+
         if violations:
             self._update_service_object(True)
         else:
