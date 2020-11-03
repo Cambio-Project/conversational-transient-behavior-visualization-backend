@@ -1,4 +1,6 @@
 import numpy as np
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from .models import Service, ServiceData, Specification
 from .config import Param, TbCause
@@ -217,9 +219,22 @@ class LossService:
         else:
             self._update_service_object(False)
 
+    def _notify_viz(self):
+        layer = get_channel_layer()
+        async_to_sync(layer.group_send)('service-update', {
+            'type': 'service-update',
+            'id': self.service.id,
+            'name': self.service.name,
+            'system': self.service.system,
+            'endpoints': self.service.endpoints,
+            'violation_detected': self.service.violation_detected
+        })
+
     def _update_service_object(self, has_violations):
-        self.service.violation_detected = has_violations
-        self.service.save()
+        if self.service.violation_detected != has_violations:
+            self.service.violation_detected = has_violations
+            self.service.save()
+            self._notify_viz()
 
     def compute_resilience_loss(self):
         self._reset_loss()
