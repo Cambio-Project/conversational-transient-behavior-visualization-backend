@@ -54,7 +54,7 @@ def dialogflow(request):
         )
 
         # Compute resilience loss
-        ls = LossService(service, params[Param.TB_CAUSE], params[Param.RECOVERY_TIME], params[Param.LOSS_OFF_RESILIENCE])
+        ls = LossService(service, params[Param.TB_CAUSE], Utils.duration_to_seconds(params[Param.RECOVERY_TIME]), params[Param.LOSS_OFF_RESILIENCE])
         ls.compute_resilience_loss()
         ls.check_loss_violations()
 
