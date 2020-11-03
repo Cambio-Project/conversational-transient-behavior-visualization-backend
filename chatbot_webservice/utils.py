@@ -96,7 +96,7 @@ class LossService:
                     if self._is_initial_loss(data, i):
                         start_index = self._get_start_index(data, i)
                         end_index = self._get_end_index(data, start_index)
-                        specification_endpoint = data[start_index].time + self.max_recovery_time
+                        specification_endpoint = float(data[start_index].time) + self.max_recovery_time
 
                         if data[end_index].time < specification_endpoint:
                             end_index = self._get_specification_end_index(data, end_index, specification_endpoint)
