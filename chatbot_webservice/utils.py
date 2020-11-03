@@ -222,7 +222,7 @@ class LossService:
     def _notify_viz(self):
         layer = get_channel_layer()
         async_to_sync(layer.group_send)('service-update', {
-            'type': 'service-update',
+            'type': 'service.update',
             'id': self.service.id,
             'name': self.service.name,
             'system': self.service.system,
