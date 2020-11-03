@@ -22,7 +22,7 @@ class Utils:
             'decade': -1
         }
 
-        return duration[Param.AMOUNT] * mult[duration[Param.UNIT]]
+        return float(duration[Param.AMOUNT] * mult[duration[Param.UNIT]])
 
 
 class LossService:
