@@ -148,9 +148,12 @@ class DependencyViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Dependency.objects.all()
         system = self.request.query_params.get('system')
+        scenario = self.request.query_params.get('scenario')
 
         if system:
             queryset = queryset.filter(system=system)
+        if scenario:
+            queryset = queryset.filter(scenario=scenario)
 
         return queryset
 

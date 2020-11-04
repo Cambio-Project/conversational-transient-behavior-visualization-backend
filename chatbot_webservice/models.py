@@ -10,16 +10,17 @@ class Service(models.Model):
     violation_detected = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(f'{self.name}, Scenario: {self.scenario}')
+        return f'{self.name}, Scenario: {self.scenario}'
 
 
 class Dependency(models.Model):
     system = models.CharField(max_length=200)
+    scenario = models.IntegerField(max_length=3)
     source = models.ForeignKey(Service, related_name='source', on_delete=models.CASCADE)
     target = models.ForeignKey(Service, related_name='target', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.source.name + " -> " + self.target.name
+        return f'{self.source.name} -> {self.target.name}, Scenario: {self.scenario}'
 
 
 class ServiceData(models.Model):
