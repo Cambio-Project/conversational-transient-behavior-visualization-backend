@@ -10,7 +10,7 @@ class Service(models.Model):
     violation_detected = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.name)
+        return str(f'{self.name}, Scenario: {self.scenario}')
 
 
 class Dependency(models.Model):

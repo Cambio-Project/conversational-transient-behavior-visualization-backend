@@ -3,10 +3,10 @@ import numpy as np
 
 from chatbot_webservice.models import Service, ServiceData
 
-SCENARIO = 0
+SCENARIO = 1
 SYSTEM = 'accounting-system'
 
-file_path = 'accounting.csv'
+file_path = 'accounting_nopattern.csv'
 percentile = 80
 counter = 0
 
@@ -71,7 +71,7 @@ with open(file_path, newline='') as csv_file:
 
         service_name = row[2]
         call_id = row[1]
-        service = Service.objects.get(name=service_name)
+        service = Service.objects.get(name=service_name, system=SYSTEM, scenario=SCENARIO)
 
         avgResponseTime = row[8]
         expectedResponseTime = specifiedResponseTimes[service_name][call_id]
@@ -84,8 +84,6 @@ with open(file_path, newline='') as csv_file:
                 qos = 100
 
         ServiceData.objects.create(
-            system=SYSTEM,
-            scenario=SCENARIO,
             service=service,
             time=row[0],
             callId=call_id,
