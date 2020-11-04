@@ -6,7 +6,7 @@ from chatbot_webservice.models import Service, ServiceData
 SCENARIO = 1
 SYSTEM = 'accounting-system'
 
-file_path = 'accounting_nopattern.csv'
+file_path = 'results_per_request_r4.csv'
 percentile = 80
 counter = 0
 
