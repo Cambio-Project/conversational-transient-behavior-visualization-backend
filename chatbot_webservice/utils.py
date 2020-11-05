@@ -59,7 +59,7 @@ class LossService:
 
     def _interpolate(self, first, last):
         points = []
-        for i in range(0, 10):
+        for i in range(0, self.__median_range):
             points.append(first.time + i)
 
         x = [first.time, last.time]
