@@ -121,7 +121,7 @@ def compute_my_actual_integral(complete_data, start_idx, end_idx):
 
 services = Service.objects.all()
 
-service = services.get(name='loon-service', scenario=1)
+service = services.get(name='loon-service', scenario=2)
 endpoint = 0
 cause = 'failure'
 try:
@@ -140,7 +140,7 @@ try:
         for i in range(len(expected_integral)):
             resilience_loss.append(expected_integral[i] - actual_integral[i])
 
-        # print(resilience_loss)
+        print(resilience_loss)
 
         # if endpoint == 0:
         #     clip = data[transient_behavior[0]:transient_behavior[1] + 1]

@@ -17,6 +17,7 @@ class Param:
     AMOUNT = 'amount'
     UNIT = 'unit'
     LOSS_OFF_RESILIENCE = 'loss_of_resilience'
+    SCENARIO = 'scenario'
 
 
 class ReqParam:
@@ -31,6 +32,7 @@ class ReqParam:
     AMOUNT = 'amount'
     UNIT = 'unit'
     LOSS_OFF_RESILIENCE = 'loss_of_resilience'
+    SCENARIO = 'scenario'
 
 
 class TbCause:
