@@ -45,28 +45,38 @@ class LossService:
         last_index = idx + self.__median_range if idx + self.__median_range < len(data) else len(data) - 1
         return data[idx:last_index]
 
-    def _median_of_items(self, data, idx):
-        next_items = self._get_next_items(data, idx)
-        next_qos = list(map(lambda item: item.qos, next_items))
-        return np.median(next_qos)
+    def _median_of_next_items(self, data, idx):
+        current = data[idx]
+        next = data[idx + 1]
+        qos = []
+        if next.time > current.time + self.__median_range:
+            qos = self._interpolate(current, next)
+        else:
+            next_values = self._get_next_items(data, idx)
+            qos = list(map(lambda item: item.qos, next_values))
+
+        return np.median(qos)
+
+    def _interpolate(self, first, last):
+        points = []
+        for i in range(0, 10):
+            points.append(first.time + i)
+
+        x = [first.time, last.time]
+        y = [first.qos, last.qos]
+
+        return np.interp(points, x, y)
 
     def _is_initial_loss(self, data, idx):
-        median = self._median_of_items(data, idx)
+        if idx + 1 >= len(data):
+            return False
+
+        median = self._median_of_next_items(data, idx)
         if median < self.__qos_threshold:
             return True
         return False
 
     def _get_start_index(self, data, idx):
-        # next_items = self._get_next_items(data, idx)
-        # minimum = data[idx]
-        # min_idx = idx
-        #
-        # for j, item in enumerate(next_items):
-        #     if item.qos < minimum.qos:
-        #         minimum = item
-        #         min_idx = idx + j
-        #
-        # return min_idx
         if idx > 0:
             return idx - 1
         return idx
@@ -76,7 +86,7 @@ class LossService:
 
         for j, item in enumerate(remaining_data):
             if item.qos >= self.__expected_qos:
-                median = self._median_of_items(remaining_data, j)
+                median = self._median_of_next_items(remaining_data, j)
                 if median >= self.__qos_threshold:
                     return idx + 1 + j
         return len(data) - 1

@@ -20,30 +20,44 @@ def get_next_items(data, idx):
     return data[idx:last_index]
 
 
-def median_of_items(data, idx):
-    next_items = get_next_items(data, idx)
-    next_qos = list(map(lambda item: item.qos, next_items))
-    return np.median(next_qos)
+def median_of_next_items(data, idx):
+    current = data[idx]
+    next = data[idx + 1]
+    qos = []
+    if next.time > current.time + median_range:
+        qos = interpolate(current, next)
+    else:
+        next_values = get_next_items(data, idx)
+        qos = list(map(lambda item: item.qos, next_values))
+
+    return np.median(qos)
+
+
+def interpolate(first, last):
+    points = []
+    for i in range(0, 10):
+        points.append(first.time + i)
+
+    x = [first.time, last.time]
+    y = [first.qos, last.qos]
+
+    return np.interp(points, x, y)
 
 
 def is_initial_loss(data, idx):
-    median = median_of_items(data, idx)
+    if idx + 1 >= len(data):
+        return False
+
+    median = median_of_next_items(data, idx)
     if median < qos_threshold:
         return True
     return False
 
 
 def get_start_index(data, idx):
-    next_items = get_next_items(data, idx)
-    minimum = data[idx]
-    min_idx = idx
-
-    for j, item in enumerate(next_items):
-        if item.qos < minimum.qos:
-            minimum = item
-            min_idx = idx + j
-
-    return min_idx
+    if idx > 0:
+        return idx - 1
+    return idx
 
 
 def get_end_index(data, idx):
@@ -51,7 +65,7 @@ def get_end_index(data, idx):
 
     for j, item in enumerate(remaining_data):
         if item.qos >= expected_qos:
-            median = median_of_items(remaining_data, j)
+            median = median_of_next_items(remaining_data, j)
             if median >= qos_threshold:
                 return idx + 1 + j
     return len(data) - 1
@@ -87,38 +101,11 @@ def find_transient_behavior(data: ServiceData, specification: Specification):
 
     return transient_behavior_indices
 
-
-def compute_expected_integral(complete_data, start_idx, end_idx):
-    # create numpy arrays
-    data = complete_data[start_idx:end_idx + 1]
-    x_list = list(map(lambda item: float(item.time), data))
-    y = np.full((end_idx + 1 - start_idx,), expected_qos)
-    x = np.array(x_list)
-
-    cum_int = integrate.cumtrapz(y, x, initial=0)
-    return cum_int
-
-
-def compute_actual_integral(complete_data, start_idx, end_idx):
-    # turn qos values into a numpy array
-    data = complete_data[start_idx:end_idx + 1]
-    y_list = list(map(lambda item: float(item.qos), data))
-    x_list = list(map(lambda item: float(item.time), data))
-    y = np.array(y_list)
-    x = np.array(x_list)
-
-    cum_int = integrate.cumtrapz(y, x, initial=0)
-    return cum_int
-
-
 def compute_my_expected_integral(complete_data, start_idx, end_idx):
     # create numpy arrays
     data = complete_data[start_idx:end_idx + 1]
     x_list = list(map(lambda item: float(item.time), data))
     y_list = [expected_qos] * ((end_idx + 1) - start_idx)
-
-    print(f'x len: {len(x_list)}, y len: {len(y_list)}')
-
     cum_int = Math.integrate(y_list, x_list)
     return cum_int
 
@@ -134,17 +121,18 @@ def compute_my_actual_integral(complete_data, start_idx, end_idx):
 
 services = Service.objects.all()
 
-service = services.get(name='Cart')
+service = services.get(name='loon-service', scenario=1)
 endpoint = 0
-cause = 'deployment'
+cause = 'failure'
 try:
     specification = Specification.objects.get(service_id=service.id, cause=cause)
     data = ServiceData.objects.all().filter(service_id=service.id, callId=endpoint).order_by('time')
 
     tb_occurrences = find_transient_behavior(data, specification)
-    print(tb_occurrences)
 
     for transient_behavior in tb_occurrences:
+        print(f'Start: {data[transient_behavior[0]].time}, end: {data[transient_behavior[1]].time}')
+
         expected_integral = compute_my_expected_integral(data, transient_behavior[0], transient_behavior[1])
         actual_integral = compute_my_actual_integral(data, transient_behavior[0], transient_behavior[1])
 
@@ -152,20 +140,20 @@ try:
         for i in range(len(expected_integral)):
             resilience_loss.append(expected_integral[i] - actual_integral[i])
 
-        print(resilience_loss)
+        # print(resilience_loss)
 
-        if endpoint == 0:
-            clip = data[transient_behavior[0]:transient_behavior[1] + 1]
-            time = list(map(lambda item: float(item.time), clip))
-
-            # print(time)
-
-            x = np.array(time)
-            y = np.array(resilience_loss)
-
-            fig, ax = plt.subplots()
-            ax.plot(x, y)
-            plt.show()
+        # if endpoint == 0:
+        #     clip = data[transient_behavior[0]:transient_behavior[1] + 1]
+        #     time = list(map(lambda item: float(item.time), clip))
+        #
+        #     # print(time)
+        #
+        #     x = np.array(time)
+        #     y = np.array(resilience_loss)
+        #
+        #     fig, ax = plt.subplots()
+        #     ax.plot(x, y)
+        #     plt.show()
 
 except Specification.DoesNotExist:
     print(f'No specification for {service.name} in case of {cause}')
