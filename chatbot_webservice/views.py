@@ -84,33 +84,57 @@ def dialogflow(request):
     elif intent == Intent.EDIT_SPECIFICATION_LOSS:
         logger.info('Entering edit specification loss intent')
         params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
+        params[Param.SCENARIO] = query_params.get(ReqParam.SCENARIO)
         params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
         params[Param.INITIAL_LOSS] = query_params.get(ReqParam.INITIAL_LOSS)
 
+        service = Service.objects.get(name=params[Param.SERVICE_NAME], scenario=params[Param.SCENARIO])
+
         # Update specification object
-        specification = Specification.objects.get(service__name=params[Param.SERVICE_NAME], cause=params[Param.TB_CAUSE])
+        specification = Specification.objects.get(service=service, cause=params[Param.TB_CAUSE])
         if specification:
-            logger.info('Found specification object')
+            new_loss = (params[Param.INITIAL_LOSS] * specification.max_recovery_time) / 2
             specification.max_initial_loss = params[Param.INITIAL_LOSS]
+            specification.max_lor = new_loss
             specification.save()
+
+            # Compute resilience loss
+            ls = LossService(service, params[Param.TB_CAUSE], specification.max_recovery_time,
+                             new_loss)
+            ls.compute_resilience_loss()
+            ls.check_loss_violations()
+
             fulfillmentText = {'fulfillmentText': f'Updated the initial loss for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]} to {params[Param.INITIAL_LOSS]}'}
         else:
             logger.info('Did not find specification object')
             fulfillmentText = {'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
     elif intent == Intent.EDIT_SPECIFICATION_RECOVERY_TIME:
         params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
+        params[Param.SCENARIO] = query_params.get(ReqParam.SCENARIO)
         params[Param.TB_CAUSE] = query_params.get(ReqParam.TB_CAUSE)
         params[Param.RECOVERY_TIME] = {
             Param.AMOUNT: query_params.get(ReqParam.RECOVERY_TIME).get(ReqParam.AMOUNT),
             Param.UNIT: query_params.get(ReqParam.RECOVERY_TIME).get(ReqParam.UNIT)
         }
 
+        service = Service.objects.get(name=params[Param.SERVICE_NAME], scenario=params[Param.SCENARIO])
+
         # Update specification object
-        specification = Specification.objects.get(service__name=params[Param.SERVICE_NAME],
+        specification = Specification.objects.get(service=service,
                                                   cause=params[Param.TB_CAUSE])
         if specification:
+            new_recovery_time = Utils.duration_to_seconds(params[Param.RECOVERY_TIME])
+            new_loss = (specification.max_initial_loss * new_recovery_time) / 2
             specification.max_recovery_time = Utils.duration_to_seconds(params[Param.RECOVERY_TIME])
+            specification.max_lor = new_loss
             specification.save()
+
+            # Compute resilience loss
+            ls = LossService(service, params[Param.TB_CAUSE], new_recovery_time,
+                             new_loss)
+            ls.compute_resilience_loss()
+            ls.check_loss_violations()
+
             fulfillmentText = {
                 'fulfillmentText': f'Updated the recovery time for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]} to {Utils.duration_to_seconds(params[Param.RECOVERY_TIME])} s'}
         else:
