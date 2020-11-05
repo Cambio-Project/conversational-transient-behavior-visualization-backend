@@ -57,16 +57,19 @@ class LossService:
         return False
 
     def _get_start_index(self, data, idx):
-        next_items = self._get_next_items(data, idx)
-        minimum = data[idx]
-        min_idx = idx
-
-        for j, item in enumerate(next_items):
-            if item.qos < minimum.qos:
-                minimum = item
-                min_idx = idx + j
-
-        return min_idx
+        # next_items = self._get_next_items(data, idx)
+        # minimum = data[idx]
+        # min_idx = idx
+        #
+        # for j, item in enumerate(next_items):
+        #     if item.qos < minimum.qos:
+        #         minimum = item
+        #         min_idx = idx + j
+        #
+        # return min_idx
+        if idx > 0:
+            return idx - 1
+        return idx
 
     def _get_end_index(self, data, idx):
         remaining_data = data[idx + 1:len(data)]

@@ -65,7 +65,7 @@ def create_expected_qos_map():
 
 with open(file_path, newline='') as csv_file:
     data_reader = csv.reader(csv_file, delimiter=',')
-    next(data_reader, None) # skip header
+    # next(data_reader, None) # skip header
     for row in data_reader:
         counter += 1
 
