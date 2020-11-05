@@ -6,7 +6,7 @@ from chatbot_webservice.models import Service, ServiceData
 SCENARIO = 1
 SYSTEM = 'accounting-system'
 
-file_path = 'results_per_request_r4.csv'
+file_path = 'data_no_pattern.csv'
 percentile = 80
 counter = 0
 
@@ -60,8 +60,8 @@ def create_expected_qos_map():
 ######################################## methods #################################################################
 
 
-specifiedResponseTimes = create_expected_qos_map()
-print(f'Specified response times: {specifiedResponseTimes}')
+# specifiedResponseTimes = create_expected_qos_map()
+# print(f'Specified response times: {specifiedResponseTimes}')
 
 with open(file_path, newline='') as csv_file:
     data_reader = csv.reader(csv_file, delimiter=',')
@@ -69,28 +69,21 @@ with open(file_path, newline='') as csv_file:
     for row in data_reader:
         counter += 1
 
-        service_name = row[2]
+        time = row[0]
         call_id = row[1]
+        service_name = row[2]
+        uri = row[3]
+        qos = float(row[4])
+
         service = Service.objects.get(name=service_name, system=SYSTEM, scenario=SCENARIO)
-
-        avgResponseTime = row[8]
-        expectedResponseTime = specifiedResponseTimes[service_name][call_id]
-
-        if float(avgResponseTime) == 0.0:
-            qos = 100
-        else:
-            qos = round((float(expectedResponseTime) / float(avgResponseTime)) * 100)
-            if qos > 100:
-                qos = 100
 
         ServiceData.objects.create(
             service=service,
-            time=row[0],
+            time=time,
             callId=call_id,
-            uri=row[4],
+            uri=uri,
             qos=qos
         )
 
         if counter % 50 == 0:
             print(counter,  end='\r')
-

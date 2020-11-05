@@ -167,9 +167,9 @@ class ServiceDataViewSet(viewsets.ModelViewSet):
         callId = self.request.query_params.get('callid')
 
         if service:
-            queryset = queryset.filter(service_id=service)
+            queryset = queryset.filter(service_id=service).order_by('time')
         if callId:
-            queryset = queryset.filter(callId=callId)
+            queryset = queryset.filter(callId=callId).order_by('time')
 
         return queryset
 
