@@ -46,6 +46,8 @@ class LossService:
         return data[idx:last_index]
 
     def _median_of_next_items(self, data, idx):
+        if idx + 1 >= len(data):
+            return data[idx]
         current = data[idx]
         next = data[idx + 1]
         qos = []
