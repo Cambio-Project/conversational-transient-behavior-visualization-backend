@@ -94,8 +94,10 @@ class LossService:
         return len(data) - 1
 
     def _get_specification_end_index(self, data, idx, specification_endpoint):
+        if specification_endpoint >= data[len(data) - 1].time:
+            return len(data) - 1
         current_idx = idx
-        while current_idx < len(data) - 1 and data[current_idx].time < specification_endpoint:
+        while data[current_idx].time < specification_endpoint:
             current_idx += 1
         return current_idx
 

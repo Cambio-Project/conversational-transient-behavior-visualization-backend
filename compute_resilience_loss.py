@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
 
 from chatbot_webservice.models import Service, ServiceData, Specification
 from chatbot_webservice.math import Math
@@ -21,6 +19,8 @@ def get_next_items(data, idx):
 
 
 def median_of_next_items(data, idx):
+    if idx + 1 >= len(data):
+        return data[idx].qos
     current = data[idx]
     next = data[idx + 1]
     qos = []
@@ -72,6 +72,8 @@ def get_end_index(data, idx):
 
 
 def get_specification_end_index(data, idx, specification_endpoint):
+    if specification_endpoint >= data[len(data) - 1].time:
+        return len(data) - 1
     current_idx = idx
     while data[current_idx].time < specification_endpoint:
         current_idx += 1
@@ -121,7 +123,7 @@ def compute_my_actual_integral(complete_data, start_idx, end_idx):
 
 services = Service.objects.all()
 
-service = services.get(name='payslip', scenario=2)
+service = services.get(name='Order', scenario=0)
 endpoint = 0
 cause = 'failure'
 try:
