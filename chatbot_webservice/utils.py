@@ -162,7 +162,7 @@ class LossService:
         print(f'Added loss to data items')
 
     def _get_call_ids(self):
-        if self.service.name == 'loon-service2':
+        if self.service.name == 'payslip2':
             return [5]
         else:
             num_endpoints = len(self.service.endpoints)

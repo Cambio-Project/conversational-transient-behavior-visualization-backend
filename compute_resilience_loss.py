@@ -9,8 +9,8 @@ expected_qos = 100.0
 qos_threshold = 90.0
 median_range = 5
 call_ids = {
-    'loon-service': [0, 1, 2, 3, 4],
-    'loon-service2': [5]
+    'payslip': [0, 1, 2, 3, 4],
+    'payslip2': [5]
 }
 tb_causes = ['failure', 'deployment', 'load-balancing']
 
@@ -121,7 +121,7 @@ def compute_my_actual_integral(complete_data, start_idx, end_idx):
 
 services = Service.objects.all()
 
-service = services.get(name='loon-service', scenario=2)
+service = services.get(name='payslip', scenario=2)
 endpoint = 0
 cause = 'failure'
 try:
