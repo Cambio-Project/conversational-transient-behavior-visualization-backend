@@ -83,10 +83,13 @@ class LossService:
             return idx - 1
         return idx
 
-    def _get_end_index(self, data, idx):
+    def _get_end_index(self, data, idx, spec_end):
         remaining_data = data[idx + 1:len(data)]
 
         for j, item in enumerate(remaining_data):
+            if item.time < spec_end:
+                continue
+
             if item.qos >= self.__expected_qos:
                 median = self._median_of_next_items(remaining_data, j)
                 if median >= self.__qos_threshold:
@@ -112,8 +115,8 @@ class LossService:
                 if item.qos < self.__expected_qos:
                     if self._is_initial_loss(data, i):
                         start_index = self._get_start_index(data, i)
-                        end_index = self._get_end_index(data, start_index)
                         specification_endpoint = float(data[start_index].time) + self.max_recovery_time
+                        end_index = self._get_end_index(data, start_index, specification_endpoint)
 
                         if data[end_index].time < specification_endpoint:
                             end_index = self._get_specification_end_index(data, end_index, specification_endpoint)

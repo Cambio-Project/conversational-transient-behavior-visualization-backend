@@ -3,10 +3,10 @@ import numpy as np
 
 from chatbot_webservice.models import Service, ServiceData
 
-SCENARIO = 0
+SCENARIO = 2
 SYSTEM = 'SockShop'
 
-file_path = 'sockshop.csv'
+file_path = 'sockshop_2.csv'
 percentile = 90
 counter = 0
 
@@ -95,6 +95,7 @@ def compute_expected_qos(k):
 
 
 specifiedResponseTimes = compute_expected_qos(percentile)
+print(specifiedResponseTimes)
 
 with open(file_path, newline='') as csv_file:
     data_reader = csv.reader(csv_file, delimiter=',')
@@ -102,14 +103,15 @@ with open(file_path, newline='') as csv_file:
     endpoints = headers[1:]
 
     for row in data_reader:
-        counter += 1
         time = float(row.pop(0))
 
         for i, col in enumerate(row):
+            counter += 1
+
             uri = endpoints[i]
             service_name = services[uri]
             call_id = callIds[uri]
-            service = Service.objects.get(name=service_name)
+            service = Service.objects.get(name=service_name, system='SockShop', scenario=SCENARIO)
 
             response_time = float(col)
             exp_response_time = specifiedResponseTimes[i]
@@ -122,8 +124,6 @@ with open(file_path, newline='') as csv_file:
                     qos = 100
 
             ServiceData.objects.create(
-                system=SYSTEM,
-                scenario=SCENARIO,
                 service=service,
                 time=time,
                 callId=call_id,
@@ -131,5 +131,5 @@ with open(file_path, newline='') as csv_file:
                 qos=qos
             )
 
-        if counter % 10 == 0:
-            print(counter, end='\r')
+            if counter % 10 == 0:
+                print(counter, end='\r')
