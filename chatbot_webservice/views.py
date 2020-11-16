@@ -74,18 +74,19 @@ def dialogflow(request):
         # Delete specification object
         try:
             specification = Specification.objects.get(service=service, cause=params[Param.TB_CAUSE])
+            if specification:
+                ls = LossService(service, specification.cause, specification.max_recovery_time, specification.max_lor)
+                ls.remove_resilience_loss()
+
+                specification.delete()
+                fulfillmentText = {
+                    'fulfillmentText': f'I deleted the transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
+            else:
+                fulfillmentText = {
+                    'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
         except Specification.DoesNotExist:
             fulfillmentText = {
                 'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
-
-        if specification:
-            ls = LossService(service, specification.cause, specification.max_recovery_time, specification.max_lor)
-            ls.remove_resilience_loss()
-
-            specification.delete()
-            fulfillmentText = {'fulfillmentText': f'I deleted the transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
-        else:
-            fulfillmentText = {'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
     elif intent == Intent.EDIT_SPECIFICATION_LOSS:
         logger.info('Entering edit specification loss intent')
         params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
@@ -98,25 +99,26 @@ def dialogflow(request):
         # Update specification object
         try:
             specification = Specification.objects.get(service=service, cause=params[Param.TB_CAUSE])
+            if specification:
+                new_loss = (params[Param.INITIAL_LOSS] * specification.max_recovery_time) / 2
+                specification.max_initial_loss = params[Param.INITIAL_LOSS]
+                specification.max_lor = new_loss
+                specification.save()
+
+                # Compute resilience loss
+                ls = LossService(service, params[Param.TB_CAUSE], specification.max_recovery_time,
+                                 new_loss)
+                ls.compute_resilience_loss()
+                ls.check_loss_violations()
+
+                fulfillmentText = {
+                    'fulfillmentText': f'Updated the initial loss for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]} to {params[Param.INITIAL_LOSS]}'}
+            else:
+                fulfillmentText = {
+                    'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
         except Specification.DoesNotExist:
             fulfillmentText = {
                 'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
-
-        if specification:
-            new_loss = (params[Param.INITIAL_LOSS] * specification.max_recovery_time) / 2
-            specification.max_initial_loss = params[Param.INITIAL_LOSS]
-            specification.max_lor = new_loss
-            specification.save()
-
-            # Compute resilience loss
-            ls = LossService(service, params[Param.TB_CAUSE], specification.max_recovery_time,
-                             new_loss)
-            ls.compute_resilience_loss()
-            ls.check_loss_violations()
-
-            fulfillmentText = {'fulfillmentText': f'Updated the initial loss for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]} to {params[Param.INITIAL_LOSS]}'}
-        else:
-            fulfillmentText = {'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
     elif intent == Intent.EDIT_SPECIFICATION_RECOVERY_TIME:
         params[Param.SERVICE_NAME] = query_params.get(ReqParam.SERVICE_NAME)
         params[Param.SCENARIO] = query_params.get(ReqParam.SCENARIO)
@@ -132,26 +134,25 @@ def dialogflow(request):
         try:
             specification = Specification.objects.get(service=service,
                                                   cause=params[Param.TB_CAUSE])
+            if specification:
+                new_recovery_time = Utils.duration_to_seconds(params[Param.RECOVERY_TIME])
+                new_loss = (specification.max_initial_loss * new_recovery_time) / 2
+                specification.max_recovery_time = Utils.duration_to_seconds(params[Param.RECOVERY_TIME])
+                specification.max_lor = new_loss
+                specification.save()
+
+                # Compute resilience loss
+                ls = LossService(service, params[Param.TB_CAUSE], new_recovery_time,
+                                 new_loss)
+                ls.compute_resilience_loss()
+                ls.check_loss_violations()
+
+                fulfillmentText = {
+                    'fulfillmentText': f'Updated the recovery time for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]} to {Utils.duration_to_seconds(params[Param.RECOVERY_TIME])} s'}
+            else:
+                fulfillmentText = {
+                    'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
         except Specification.DoesNotExist:
-            fulfillmentText = {
-                'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
-
-        if specification:
-            new_recovery_time = Utils.duration_to_seconds(params[Param.RECOVERY_TIME])
-            new_loss = (specification.max_initial_loss * new_recovery_time) / 2
-            specification.max_recovery_time = Utils.duration_to_seconds(params[Param.RECOVERY_TIME])
-            specification.max_lor = new_loss
-            specification.save()
-
-            # Compute resilience loss
-            ls = LossService(service, params[Param.TB_CAUSE], new_recovery_time,
-                             new_loss)
-            ls.compute_resilience_loss()
-            ls.check_loss_violations()
-
-            fulfillmentText = {
-                'fulfillmentText': f'Updated the recovery time for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]} to {Utils.duration_to_seconds(params[Param.RECOVERY_TIME])} s'}
-        else:
             fulfillmentText = {
                 'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
     elif intent == Intent.SHOW_SPECIFICATION:
@@ -163,13 +164,12 @@ def dialogflow(request):
         try:
             specification = Specification.objects.get(service=service,
                                                   cause=params[Param.TB_CAUSE])
+            if specification:
+                fulfillmentText = {
+                    'fulfillmentText': f'In case of {params[Param.TB_CAUSE]} of {service.name}, the initial loss is {specification.max_initial_loss}, the max recovery time is {specification.max_recovery_time}, and the max resilience loss is {specification.max_lor}.'}
         except Specification.DoesNotExist:
             fulfillmentText = {
                 'fulfillmentText': f'There is no transient behavior specification for {params[Param.TB_CAUSE]} of {params[Param.SERVICE_NAME]}'}
-
-        if specification:
-            fulfillmentText = {'fulfillmentText': f'In case of {params[Param.TB_CAUSE]} of {service.name}, the initial loss is {specification.max_initial_loss}, the max recovery time is {specification.max_recovery_time}, and the max resilience loss is {specification.max_lor}.'}
-
 
     # Send message via websockets
     layer = get_channel_layer()
