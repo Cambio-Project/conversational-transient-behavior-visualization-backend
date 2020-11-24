@@ -1,7 +1,8 @@
 # Setup
 1. Install packages
+
     ```pip install -r requirements.txt```
-2. Add database
+2. Add database in ./webservice/settings.py
     ```
     DATABASES = {
       'default': {
@@ -15,4 +16,5 @@
     }
     ```
  3. Run server
+ 
     ```python manage.py runserver```
