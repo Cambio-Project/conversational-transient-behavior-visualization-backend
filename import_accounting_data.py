@@ -1,15 +1,15 @@
 import csv
-import numpy as np
 
 from chatbot_webservice.models import Service, ServiceData
 
-SCENARIO = 2
+# Change these variables to declare the data that you want to import (scenario 0/1/2)
+SCENARIO = 0
+FILE_PATH = 'data/accounting_0.csv'
+
+counter = 0
 SYSTEM = 'accounting-system'
 
-file_path = 'data_pattern.csv'
-counter = 0
-
-with open(file_path, newline='') as csv_file:
+with open(FILE_PATH, newline='') as csv_file:
     data_reader = csv.reader(csv_file, delimiter=',')
 
     for row in data_reader:

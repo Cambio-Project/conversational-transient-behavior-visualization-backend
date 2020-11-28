@@ -3,11 +3,12 @@ import numpy as np
 
 from chatbot_webservice.models import Service, ServiceData
 
-SCENARIO = 2
-SYSTEM = 'SockShop'
+# Change these variables to declare the data that you want to import (scenario 0/1/2)
+SCENARIO = 0
+FILE_PATH = 'data/sockshop_0.csv'
 
-file_path = 'sockshop_2.csv'
-percentile = 90
+SYSTEM = 'SockShop'
+percentile = 90 # use the 90th percentile of the response time as the expect qos of 100%
 counter = 0
 
 services = {
@@ -54,7 +55,7 @@ callIds = {
     'getOrders': 1
 }
 
-
+# For this dataset we still have to compute the qos value, based on the response times
 def compute_expected_qos(k):
     values = [
         [],
@@ -79,7 +80,7 @@ def compute_expected_qos(k):
     ]
     result = []
 
-    with open(file_path, newline='') as csv_file:
+    with open(FILE_PATH, newline='') as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
         next(reader, None)
 
@@ -97,7 +98,7 @@ def compute_expected_qos(k):
 specifiedResponseTimes = compute_expected_qos(percentile)
 print(specifiedResponseTimes)
 
-with open(file_path, newline='') as csv_file:
+with open(FILE_PATH, newline='') as csv_file:
     data_reader = csv.reader(csv_file, delimiter=',')
     headers = next(data_reader)
     endpoints = headers[1:]
