@@ -20,6 +20,7 @@
     ```python manage.py runserver```
 
 I recommend to host the application on Heroku, as the project is already configured for that environment.
+If you need help with Django, check out this resource: [Documentation](https://docs.djangoproject.com/en/3.1/).
 
 # Import Datasets
 I used six datasets for my thesis, you can find them in the ```data``` directory. Three datasets belong to a mockup accounting payroll system, the other three datasets belong to SockShop. The data is saved in csv files. I wrote two python scripts that you can use to store the data in the database. One is for the accounting system data, one for the SockShop data:
